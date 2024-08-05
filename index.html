@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo List</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+      }
+      .main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+      }
+      input {
+        width: 350px;
+        padding: 10px;
+        flex: 1;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+      }
+      button {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #f0f0f0;
+        cursor: pointer;
+      }
+      h1 {
+        text-align: center;
+      }
+      .input-div {
+        display: flex;
+        width: 100%;
+        flex-direction: row;
+      }
+      .todo-item-div {
+        display: flex;
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .todo-item {
+        text-align: left;
+        flex: 1;
+      }
+      .todo-item-div input {
+        flex: 0;
+        margin-right: 10px;
+      }
+      .trash {
+        cursor: pointer;
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div className="main">
+      <h1>TODO LIST</h1>
+      <div className="input-div">
+        <input
+          id="todoInput"
+          type="text"
+          placeholder="Adiciona uma nova lista de tarefa"
+        />
+        <button id="addButton">ADICIONAR</button>
+      </div>
+      <ul id="todoList"></ul>
+    </div>
+
+    <script>
+      function loadTodos() {
+        const todoList = JSON.parse(localStorage.getItem("todoList"));
+        const todoListDiv = document.getElementById("todo-item-div");
+
+        if (todoList && todoList?.length > 0 && !todoListDiv) {
+          todoList.forEach((todo) => {
+            addTodo(todo.text, todo.isChecked, todo.id);
+          });
+        }
+      }
+
+      function addTodo(todoText, checked = false, id, isNew) {
+        const input = document.getElementById("todoInput");
+        if (todoText !== "") {
+          const div = document.createElement("div");
+          div.className = "todo-item-div";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          console.log(checked);
+
+          if (checked) {
+            checkbox.checked = true;
+          }
+
+          const p = document.createElement("p");
+          p.textContent = todoText;
+          p.className = "todo-item";
+
+          const p2 = document.createElement("p");
+          p2.textContent = "remover";
+          p2.className = "trash";
+
+          div.appendChild(checkbox);
+          div.appendChild(p);
+          div.appendChild(p2);
+
+          const todoList = JSON.parse(localStorage.getItem("todoList"));
+
+          document.getElementById("todoList").appendChild(div);
+
+          p2.addEventListener("click", function () {
+            const savedOnStorage = localStorage.getItem("todoList");
+            const todoList = JSON.parse(savedOnStorage);
+
+            localStorage.setItem(
+              "todoList",
+              JSON.stringify(todoList?.filter((a) => a.id !== id))
+            );
+
+            div.remove();
+          });
+
+          if (isNew) {
+            localStorage.setItem(
+              "todoList",
+              todoList
+                ? JSON.stringify([
+                    ...todoList,
+                    {
+                      id: todoList.length + 1,
+                      text: todoText,
+                      isChecked: false,
+                    },
+                  ])
+                : JSON.stringify([{ id: 1, text: todoText, isChecked: false }])
+            );
+
+            input.value = "";
+          }
+
+          checkbox.addEventListener("click", function () {
+            const savedOnStorage = localStorage.getItem("todoList");
+            const todoList = JSON.parse(savedOnStorage);
+            const todo = todoList.find((todo) => todo.id === id);
+
+            if (todo?.isChecked) {
+              const newTodoList = todoList.map((todo) =>
+                todo.id === id ? { ...todo, isChecked: false } : todo
+              );
+              localStorage.setItem("todoList", JSON.stringify(newTodoList));
+            } else {
+              const newTodoList = todoList.map((todo) =>
+                todo.id === id ? { ...todo, isChecked: true } : todo
+              );
+              localStorage.setItem("todoList", JSON.stringify(newTodoList));
+            }
+          });
+        }
+      }
+
+      loadTodos();
+
+      document
+        .getElementById("addButton")
+        .addEventListener("click", function () {
+          const input = document.getElementById("todoInput");
+          const todoText = input.value.trim();
+
+          const todoList = JSON.parse(localStorage.getItem("todoList"));
+
+          if (todoText)
+            addTodo(todoText, false, todoList ? todoList.length + 1 : 1, true);
+        });
+    </script>
+  </body>
+</html>
